@@ -13,9 +13,11 @@ app.use(bodyParser.json())
 app.use(express.urlencoded({ extended: true })); // For parsing application/x-www-form-urlencoded
 
 const auth = require('./routes/authroutes')
-
+const staff = require('./routes/staffroutes')
 
 app.use('/',auth)
+app.use('/',staff)
+
 
 
 app.listen(4400,()=>{

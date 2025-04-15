@@ -27,7 +27,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
-import mockApi from '../utils/mockData';
+
 
 function Children() {
   const [children, setChildren] = useState([]);
@@ -61,10 +61,18 @@ function Children() {
   const fetchChildren = async () => {
     try {
       setLoading(true);
-      const data = await mockApi.getChildren();
-      setChildren(data);
+      const response = await fetch('http://localhost:4400/children');
+      const data = await response.json();
+  
+      if (Array.isArray(data)) {
+        setChildren(data);
+      } else {
+        setChildren([]);
+        console.warn('API returned non-array data:', data);
+      }
     } catch (error) {
       console.error('Error fetching children:', error);
+      setChildren([]); // fallback to prevent map error
       showSnackbar('Failed to fetch children', 'error');
     } finally {
       setLoading(false);
@@ -74,7 +82,6 @@ function Children() {
   const handleOpenDialog = (child = null) => {
     if (child) {
       setCurrentChild(child);
-      // Formatting dates for the form
       const formattedChild = {
         ...child,
         dateOfBirth: child.dateOfBirth ? new Date(child.dateOfBirth).toISOString().split('T')[0] : '',
@@ -100,12 +107,12 @@ function Children() {
     }
     setOpenDialog(true);
   };
-
+  
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setCurrentChild(null);
   };
-
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -113,24 +120,32 @@ function Children() {
       [name]: value
     }));
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    const submissionData = {
+      ...formData,
+      dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : null,
+      enrollmentDate: formData.enrollmentDate ? new Date(formData.enrollmentDate) : new Date()
+    };
+  
     try {
-      // Convert string dates to Date objects
-      const submissionData = {
-        ...formData,
-        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : null,
-        enrollmentDate: formData.enrollmentDate ? new Date(formData.enrollmentDate) : new Date()
-      };
-
-      if (currentChild) {
-        await mockApi.updateChild(currentChild.id, submissionData);
-        showSnackbar('Child updated successfully', 'success');
-      } else {
-        await mockApi.createChild(submissionData);
-        showSnackbar('Child added successfully', 'success');
-      }
+      const response = currentChild
+        ? await fetch(`http://localhost:4400/children/${currentChild.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(submissionData)
+          })
+        : await fetch(`http://localhost:4400/children`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(submissionData)
+          });
+  
+      if (!response.ok) throw new Error('Failed to save child');
+  
+      showSnackbar(currentChild ? 'Child updated successfully' : 'Child added successfully', 'success');
       handleCloseDialog();
       fetchChildren();
     } catch (error) {
@@ -138,11 +153,16 @@ function Children() {
       showSnackbar('Failed to save child', 'error');
     }
   };
-
+  
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this child?')) {
       try {
-        await mockApi.deleteChild(id);
+        const response = await fetch(`http://localhost:4400/children/${id}`, {
+          method: 'DELETE'
+        });
+  
+        if (!response.ok) throw new Error('Failed to delete child');
+  
         showSnackbar('Child deleted successfully', 'success');
         fetchChildren();
       } catch (error) {
@@ -151,6 +171,7 @@ function Children() {
       }
     }
   };
+  
 
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({
@@ -286,21 +307,6 @@ function Children() {
                   fullWidth
                   InputLabelProps={{ shrink: true }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  name="gender"
-                  label="Gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  select
-                  required
-                  fullWidth
-                >
-                  <MenuItem value="male">Male</MenuItem>
-                  <MenuItem value="female">Female</MenuItem>
-                  <MenuItem value="other">Other</MenuItem>
-                </TextField>
               </Grid>
               <Grid item xs={12}>
                 <Typography variant="subtitle1" sx={{ mt: 1, mb: 1 }}>
