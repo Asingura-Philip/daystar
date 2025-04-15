@@ -10,6 +10,7 @@ import {
   Alert,
   Paper,
 } from '@mui/material';
+import axios from 'axios';
 
 function Login() {
   const [formData, setFormData] = useState({
@@ -29,17 +30,34 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormError('');
+     
+      try {
+        const response = await axios.post('http://localhost:4400/login', formData);
 
-    // Logic without authentication service
-    if (!formData.email || !formData.password) {
-      setFormError('Please fill in all required fields');
-      return;
-    }
+        console.log(response.data);
+        if (response.status === 200) {
+          alert(response.data.message);
+          // Get the role from the response
+          const role = response.data.role;
 
-    // Simulate successful login and redirect to dashboard
-    console.log('Logging in with:', formData);
-    navigate('/dashboard/parent');
+          // Navigate based on role
+          if (role === 'parent') {
+            navigate("/dashboard/parent");
+          } else if (role === 'manager' || role === 'babysitter') {
+            navigate("/dashboard/staff");
+          } else if (role === 'admin') {
+            navigate("/dashboard/admin");
+          }
+        }
+      } catch (error) {
+        // Handle error responses from the backend
+        if (error.response) {
+          alert(error.response.data.error || 'An error occurred');
+        } else {
+          alert('An error occurred, please try again');
+        }
+      }
+    
   };
 
   return (

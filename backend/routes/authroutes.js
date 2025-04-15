@@ -103,4 +103,62 @@ const values = [
   });
 
 
+router.post('/login', (req, res) => {
+    const { email, password } = req.body;
+  
+    // Validate input
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+  
+    // Query to get user by email
+    const query = 'SELECT * FROM users WHERE email = ?'; 
+  
+    connection.execute(query, [email], (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        if (!res.headersSent) {
+          return res.status(500).json({ error: 'Internal server error' });
+        }
+      }
+  
+      if (results.length === 0) {
+        if (!res.headersSent) {
+          return res.status(401).json({ error: 'Invalid email or password' });
+        }
+      }
+  
+      const user = results[0];
+  
+      // Compare hashed password with bcrypt
+      bcrypt.compare(password, user.password, (err, isMatch) => {
+        if (err) {
+          console.error('Error comparing passwords:', err);
+          if (!res.headersSent) {
+            return res.status(500).json({ error: 'Internal server error' });
+          }
+        }
+  
+        if (!isMatch) {
+          if (!res.headersSent) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+          }
+        }
+  
+        // Password is correct, send the response
+        if (!res.headersSent) {
+          return res.status(200).json({
+            message: 'Login successful',
+            token: 'your-jwt-token',
+            role: user.role,
+          });
+        }
+      });
+    });
+});
+  
+
+
+
+
   module.exports = router;
