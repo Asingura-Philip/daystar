@@ -15,6 +15,7 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
+import axios from 'axios';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -100,26 +101,28 @@ const Register = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-
+    e.preventDefault(); // Prevent the default form submission behavior
+  
+  
     try {
-      // Prepare user data for registration
-      const userData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        role: formData.role,
-        phoneNumber: formData.phoneNumber,
-        address: formData.address
-      };
-      console.log(userData)
-      // Removed auth logic, registration logic would go here (mocked or replaced as needed)
-      navigate('/login'); // Redirecting to login page after registration
+      // Send POST request to backend with the form data
+      const response = await axios.post('http://localhost:4400/register', formData);
+  
+      // Log the response from the backend
+      console.log(response.data);
+  
+      // Check if the response indicates a successful Registered
+      if (response.status === 201) {  // Status 201 means "Created" (success)
+        alert('Registerion successful');
+        navigate('/login');  // Redirect to login page
+      } else {
+        // Handle case where the backend returned an error or unexpected response
+        alert(`Registeration failed: ${response.data.message || 'An error occurred'}`);
+      }
     } catch (error) {
-      console.error('Registration error:', error);
-      setError('Failed to register');
+      // Handle any errors that occurred during the request
+      console.error('There was an error!', error.message);
+      alert('Error in registration!');
     }
   };
 
