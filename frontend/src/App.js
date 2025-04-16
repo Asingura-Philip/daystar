@@ -21,6 +21,7 @@ import StaffDashboard from './pages/StaffDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Enrollment from './pages/Enrollment';
 import Profile from './pages/Profile';
+import BabysitterRegistration from './pages/authStaffDashboard'
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
             <Route path="finances" element={<Finances />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="profile" element={<Profile />} />
+            <Route path="/register-babysitter" element={<BabysitterRegistration />} />
           </Route>
 
           {/* Non-sidebar routes (can be moved into layout if needed) */}

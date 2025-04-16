@@ -39,6 +39,10 @@ function Login() {
           alert(response.data.message);
           // Get the role from the response
           const role = response.data.role;
+          console.log("User role:", role);
+
+          // Save role to localStorage or context
+          localStorage.setItem("userRole", role);
 
           // Navigate based on role
           if (role === 'parent') {

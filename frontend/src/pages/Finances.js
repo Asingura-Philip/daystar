@@ -64,19 +64,6 @@ function Finances() {
     severity: 'success'
   });
 
-  // const fetchFinances = useCallback(async () => {
-  //   try {
-  //     setLoading(true);
-  //     const data = await mockApi.getFinances();
-  //     setFinances(data);
-  //     calculateSummary(data);
-  //   } catch (error) {
-  //     console.error('Error fetching finances:', error);
-  //     showSnackbar('Failed to fetch finances', 'error');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // }, []);
   const fetchFinances = useCallback(async () => {
     try {
       setLoading(true);
@@ -151,28 +138,6 @@ function Finances() {
     }));
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     const submissionData = {
-  //       ...formData,
-  //       date: new Date(formData.date)
-  //     };
-
-  //     if (currentFinance) {
-  //       await mockApi.updateFinance(currentFinance.id, submissionData);
-  //       showSnackbar('Finance record updated successfully', 'success');
-  //     } else {
-  //       await mockApi.createFinance(submissionData);
-  //       showSnackbar('Finance record added successfully', 'success');
-  //     }
-  //     handleCloseDialog();
-  //     fetchFinances();
-  //   } catch (error) {
-  //     console.error('Error saving finance record:', error);
-  //     showSnackbar('Failed to save finance record', 'error');
-  //   }
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -197,18 +162,6 @@ function Finances() {
     }
   };
   
-  // const handleDelete = async (id) => {
-  //   if (window.confirm('Are you sure you want to delete this finance record?')) {
-  //     try {
-  //       await mockApi.deleteFinance(id);
-  //       showSnackbar('Finance record deleted successfully', 'success');
-  //       fetchFinances();
-  //     } catch (error) {
-  //       console.error('Error deleting finance record:', error);
-  //       showSnackbar('Failed to delete finance record', 'error');
-  //     }
-  //   }
-  // };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this finance record?')) {
@@ -271,7 +224,7 @@ function Finances() {
                 Total Income
               </Typography>
               <Typography variant="h4" color="success.main">
-                ${summary.totalIncome.toFixed(2)}
+                UGX {summary.totalIncome.toFixed(2)}
               </Typography>
             </CardContent>
           </Card>
@@ -283,7 +236,7 @@ function Finances() {
                 Total Expenses
               </Typography>
               <Typography variant="h4" color="error.main">
-                ${summary.totalExpenses.toFixed(2)}
+                UGX {summary.totalExpenses.toFixed(2)}
               </Typography>
             </CardContent>
           </Card>
@@ -295,7 +248,7 @@ function Finances() {
                 Balance
               </Typography>
               <Typography variant="h4" color={summary.balance >= 0 ? 'success.main' : 'error.main'}>
-                ${summary.balance.toFixed(2)}
+                UGX {summary.balance.toFixed(2)}
               </Typography>
             </CardContent>
           </Card>

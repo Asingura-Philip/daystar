@@ -14,8 +14,25 @@ import {
   IconButton,
 } from '@mui/material';
 import { PhotoCamera, Save, Cancel } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+
+const getDashboardPath = (role) => {
+  switch (role) {
+    case 'parent':
+      return '/dashboard/parent';
+    case 'manager':
+      return '/dashboard/manager';
+    case 'babysitter':
+      return '/dashboard/babysitter';
+    case 'admin':
+      return '/dashboard/admin';
+    default:
+      return '/profile';
+  }
+};
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -29,7 +46,6 @@ const Profile = () => {
     phoneNumber: '',
     address: '',
     bio: '',
-    // Role-specific fields
     position: '',
     experience: '',
     qualifications: '',
@@ -37,11 +53,11 @@ const Profile = () => {
     specialNeeds: '',
     emergencyContact: '',
     emergencyPhone: '',
+    role: '',
   });
 
-  // Simulating user data loading
   useEffect(() => {
-    // Here, you'd fetch the user data from your backend
+    // Simulated user data fetch
     const userData = {
       firstName: 'John',
       lastName: 'Doe',
@@ -49,28 +65,20 @@ const Profile = () => {
       phoneNumber: '123-456-7890',
       address: '1234 Main St, City, Country',
       bio: 'A little about me...',
-      role: 'parent', // or 'manager', 'babysitter'
+      role: 'parent',
     };
 
-    setFormData({
-      firstName: userData.firstName || '',
-      lastName: userData.lastName || '',
-      email: userData.email || '',
-      phoneNumber: userData.phoneNumber || '',
-      address: userData.address || '',
-      bio: userData.bio || '',
-      position: userData.position || '',
-      experience: userData.experience || '',
-      qualifications: userData.qualifications || '',
-      childrenCount: userData.childrenCount || '',
-      specialNeeds: userData.specialNeeds || '',
-      emergencyContact: userData.emergencyContact || '',
-      emergencyPhone: userData.emergencyPhone || '',
-    });
+    setFormData((prev) => ({
+      ...prev,
+      ...userData,
+    }));
 
     if (userData.profileImage) {
       setPreviewUrl(userData.profileImage);
     }
+
+    // Optional: ensure role is stored in localStorage
+    localStorage.setItem('userRole', userData.role);
   }, []);
 
   const handleChange = (e) => {
@@ -100,25 +108,18 @@ const Profile = () => {
     setSuccess(false);
 
     try {
-      // Simulate saving the profile
-      // Create FormData to handle file upload
       const formDataToSend = new FormData();
-
-      // Add all form fields
       Object.keys(formData).forEach((key) => {
         if (formData[key]) {
           formDataToSend.append(key, formData[key]);
         }
       });
 
-      // Add profile image if selected
       if (profileImage) {
         formDataToSend.append('profileImage', profileImage);
       }
 
-      // Simulating an updateProfile function
       console.log('Updated Profile:', formDataToSend);
-
       setSuccess(true);
     } catch (err) {
       setError(err.message || 'Failed to update profile');
@@ -211,6 +212,25 @@ const Profile = () => {
     }
   };
 
+  const handleCancel = () => {
+    let role = localStorage.getItem('userRole');
+
+    if (!role) {
+      try {
+        const userString = localStorage.getItem('user');
+        const user = JSON.parse(userString);
+        role = user?.role;
+      } catch (e) {
+        console.error('Failed to parse user from localStorage', e);
+      }
+    }
+
+    const path = getDashboardPath(role);
+    console.log('User role:', role);
+    console.log('Redirecting to:', path);
+    navigate(path);
+  };
+
   return (
     <Container maxWidth="md">
       <Paper elevation={3} sx={{ p: 4, mt: 4, mb: 4 }}>
@@ -220,21 +240,12 @@ const Profile = () => {
 
         <Divider sx={{ my: 3 }} />
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
-            {error}
-          </Alert>
-        )}
-
-        {success && (
-          <Alert severity="success" sx={{ mb: 3 }}>
-            Profile updated successfully!
-          </Alert>
-        )}
+        {error && <Alert severity="error">{error}</Alert>}
+        {success && <Alert severity="success">Profile updated successfully!</Alert>}
 
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
-            <Grid item xs={12} display="flex" justifyContent="center" mb={2}>
+            <Grid item xs={12} display="flex" justifyContent="center">
               <Box sx={{ position: 'relative' }}>
                 <Avatar src={previewUrl} sx={{ width: 120, height: 120, mb: 1 }} />
                 <input
@@ -245,7 +256,11 @@ const Profile = () => {
                   onChange={handleImageChange}
                 />
                 <label htmlFor="profile-image-upload">
-                  <IconButton color="primary" component="span" sx={{ position: 'absolute', bottom: 0, right: 0 }}>
+                  <IconButton
+                    color="primary"
+                    component="span"
+                    sx={{ position: 'absolute', bottom: 0, right: 0 }}
+                  >
                     <PhotoCamera />
                   </IconButton>
                 </label>
@@ -354,10 +369,16 @@ const Profile = () => {
 
             {getRoleSpecificFields()}
 
-            <Grid item xs={12} display="flex" justifyContent="flex-end" gap={2} mt={2}>
-              <Button variant="outlined" color="secondary" startIcon={<Cancel />} onClick={() => window.location.reload()}>
+            <Grid item xs={12} display="flex" justifyContent="flex-end" gap={2}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                startIcon={<Cancel />}
+                onClick={handleCancel}
+              >
                 Cancel
               </Button>
+
               <Button
                 type="submit"
                 variant="contained"

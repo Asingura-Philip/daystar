@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   AppBar,
@@ -27,12 +27,30 @@ import {
 
 const drawerWidth = 240;
 
+const role = localStorage.getItem("userRole");
+
+// const getDashboardPath = (role) => {
+//   switch (role) {
+//     case 'parent':
+//       return '/dashboard/parent';
+//     case 'manager':
+//       return '/dashboard/staff';
+//     case 'babysitter':
+//       return '/dashboard/staff';
+//     case 'admin':
+//       return '/dashboard/admin';
+//     default:
+//       return '/profile'; // fallback
+//   }
+// };
+
 function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [role, setRole] = useState(localStorage.getItem("userRole")); // Properly define role state
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -43,8 +61,59 @@ function Layout() {
     navigate('/');
   };
 
+  // // Ensure user is redirected to the correct dashboard on load
+  // useEffect(() => {
+  //   if (role) {
+  //     const dashboardPath = getDashboardPath(role);
+  //     if (location.pathname === '/') {
+  //       navigate(dashboardPath);
+  //     }
+  //   }
+  // }, [role, navigate, location]);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setRole(localStorage.getItem("userRole"));
+    };
+    
+    // Listen for storage changes
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check on location changes in case it was updated in the same tab
+    handleStorageChange();
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  const getDashboardPath = (currentRole) => {
+    switch (currentRole) {
+      case 'parent':
+        return '/dashboard/parent';
+      case 'manager':
+        return '/dashboard/staff';
+      case 'babysitter':
+        return '/dashboard/staff';
+      case 'admin':
+        return '/dashboard/admin';
+      default:
+        return '/profile';
+    }
+  };
+
+  useEffect(() => {
+    if (role) {
+      const dashboardPath = getDashboardPath(role);
+      if (location.pathname === '/') {
+        navigate(dashboardPath);
+      }
+    }
+  }, [role, navigate, location]);
+
+
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard/parent' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: getDashboardPath(role) },
     { text: 'Babysitters', icon: <PeopleIcon />, path: '/babysitters' },
     { text: 'Children', icon: <ChildCareIcon />, path: '/children' },
     { text: 'Finances', icon: <AttachMoneyIcon />, path: '/finances' },

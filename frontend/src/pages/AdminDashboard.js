@@ -228,7 +228,7 @@ const AdminDashboard = () => {
                         <AssessmentIcon />
                       </Avatar>
                       <Box>
-                        <Typography variant="h4">${stats.totalRevenue.toFixed(2)}</Typography>
+                        <Typography variant="h4">UGX {stats.totalRevenue.toFixed(2)}</Typography>
                         <Typography color="textSecondary">Total Revenue</Typography>
                       </Box>
                     </Box>
@@ -469,3 +469,8 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
+
+
+
+
