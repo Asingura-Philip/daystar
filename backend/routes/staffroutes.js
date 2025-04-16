@@ -95,4 +95,91 @@ router.put('/children/:id', async (req, res) => {
   
 
 
+
+  // GET all babysitters
+router.get('/babysitters', async (req, res) => {
+    try {
+      const [rows] = await pool.query('SELECT * FROM babysitters ORDER BY id DESC');
+      res.json(rows);
+    } catch (error) {
+      console.error('Error fetching babysitters:', error);
+      res.status(500).json({ error: 'Failed to fetch babysitters' });
+    }
+  });
+  
+  // POST create a babysitter
+  router.post('/babysitters', async (req, res) => {
+    const {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      address,
+      emergencyContact,
+      availability,
+      qualifications,
+      status
+    } = req.body;
+  
+    try {
+      const [result] = await pool.query(
+        `INSERT INTO babysitters 
+        (firstName, lastName, email, phoneNumber, address, emergencyContact, availability, qualifications, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [firstName, lastName, email, phoneNumber, address, emergencyContact, availability, qualifications, status]
+      );
+  
+      const [newBabysitter] = await pool.query('SELECT * FROM babysitters WHERE id = ?', [result.insertId]);
+      res.status(201).json(newBabysitter[0]);
+    } catch (error) {
+      console.error('Error creating babysitter:', error);
+      res.status(500).json({ error: 'Failed to create babysitter' });
+    }
+  });
+  
+  // PUT update babysitter
+  router.put('/babysitters/:id', async (req, res) => {
+    const { id } = req.params;
+    const {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      address,
+      emergencyContact,
+      availability,
+      qualifications,
+      status
+    } = req.body;
+  
+    try {
+      await pool.query(
+        `UPDATE babysitters SET 
+          firstName = ?, lastName = ?, email = ?, phoneNumber = ?, address = ?, 
+          emergencyContact = ?, availability = ?, qualifications = ?, status = ?
+         WHERE id = ?`,
+        [firstName, lastName, email, phoneNumber, address, emergencyContact, availability, qualifications, status, id]
+      );
+  
+      const [updated] = await pool.query('SELECT * FROM babysitters WHERE id = ?', [id]);
+      res.json(updated[0]);
+    } catch (error) {
+      console.error('Error updating babysitter:', error);
+      res.status(500).json({ error: 'Failed to update babysitter' });
+    }
+  });
+  
+  // DELETE babysitter
+  router.delete('/babysitters/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      await pool.query('DELETE FROM babysitters WHERE id = ?', [id]);
+      res.json({ message: 'Babysitter deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting babysitter:', error);
+      res.status(500).json({ error: 'Failed to delete babysitter' });
+    }
+  });
+
 module.exports = router;

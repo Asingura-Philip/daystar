@@ -26,7 +26,8 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
-import mockApi from '../utils/mockData';
+// import mockApi from '../utils/mockData';
+import axios from 'axios';
 
 function Babysitters() {
   const [babysitters, setBabysitters] = useState([]);
@@ -50,11 +51,12 @@ function Babysitters() {
     severity: 'success'
   });
 
+
   const fetchBabysitters = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await mockApi.getBabysitters();
-      setBabysitters(data);
+      const response = await axios.get('http://localhost:4400/babysitters');
+      setBabysitters(response.data);
     } catch (error) {
       console.error('Error fetching babysitters:', error);
       showSnackbar('Failed to fetch babysitters', 'error');
@@ -62,6 +64,7 @@ function Babysitters() {
       setLoading(false);
     }
   }, []);
+  
 
   useEffect(() => {
     fetchBabysitters();
@@ -115,10 +118,10 @@ function Babysitters() {
     e.preventDefault();
     try {
       if (currentBabysitter) {
-        await mockApi.updateBabysitter(currentBabysitter.id, formData);
+        await axios.put(`http://localhost:4400/babysitters/${currentBabysitter.id}`, formData);
         showSnackbar('Babysitter updated successfully', 'success');
       } else {
-        await mockApi.createBabysitter(formData);
+        await axios.post('http://localhost:4400/babysitters', formData);
         showSnackbar('Babysitter added successfully', 'success');
       }
       handleCloseDialog();
@@ -128,11 +131,11 @@ function Babysitters() {
       showSnackbar('Failed to save babysitter', 'error');
     }
   };
-
+  
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this babysitter?')) {
       try {
-        await mockApi.deleteBabysitter(id);
+        await axios.delete(`http://localhost:4400/babysitters/${id}`);
         showSnackbar('Babysitter deleted successfully', 'success');
         fetchBabysitters();
       } catch (error) {
@@ -141,7 +144,7 @@ function Babysitters() {
       }
     }
   };
-
+  
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({
       open: true,

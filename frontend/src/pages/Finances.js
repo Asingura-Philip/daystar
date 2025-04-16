@@ -29,7 +29,16 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon
 } from '@mui/icons-material';
-import mockApi from '../utils/mockData';
+// import mockApi from '../utils/mockData';
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: 'http://localhost:4400',
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
 
 function Finances() {
   const [finances, setFinances] = useState([]);
@@ -55,12 +64,25 @@ function Finances() {
     severity: 'success'
   });
 
+  // const fetchFinances = useCallback(async () => {
+  //   try {
+  //     setLoading(true);
+  //     const data = await mockApi.getFinances();
+  //     setFinances(data);
+  //     calculateSummary(data);
+  //   } catch (error) {
+  //     console.error('Error fetching finances:', error);
+  //     showSnackbar('Failed to fetch finances', 'error');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, []);
   const fetchFinances = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await mockApi.getFinances();
-      setFinances(data);
-      calculateSummary(data);
+      const response = await api.get('/finances');
+      setFinances(response.data);
+      calculateSummary(response.data);
     } catch (error) {
       console.error('Error fetching finances:', error);
       showSnackbar('Failed to fetch finances', 'error');
@@ -75,13 +97,17 @@ function Finances() {
 
   const calculateSummary = (data) => {
     const summary = data.reduce((acc, curr) => {
+      const amount = parseFloat(curr.amount) || 0;
+    
       if (curr.type === 'income') {
-        acc.totalIncome += curr.amount;
+        acc.totalIncome += amount;
       } else {
-        acc.totalExpenses += curr.amount;
+        acc.totalExpenses += amount;
       }
+    
       return acc;
     }, { totalIncome: 0, totalExpenses: 0 });
+    
 
     summary.balance = summary.totalIncome - summary.totalExpenses;
     setSummary(summary);
@@ -125,19 +151,42 @@ function Finances() {
     }));
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     const submissionData = {
+  //       ...formData,
+  //       date: new Date(formData.date)
+  //     };
+
+  //     if (currentFinance) {
+  //       await mockApi.updateFinance(currentFinance.id, submissionData);
+  //       showSnackbar('Finance record updated successfully', 'success');
+  //     } else {
+  //       await mockApi.createFinance(submissionData);
+  //       showSnackbar('Finance record added successfully', 'success');
+  //     }
+  //     handleCloseDialog();
+  //     fetchFinances();
+  //   } catch (error) {
+  //     console.error('Error saving finance record:', error);
+  //     showSnackbar('Failed to save finance record', 'error');
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const submissionData = {
         ...formData,
-        date: new Date(formData.date)
+        date: formData.date
       };
-
+  
       if (currentFinance) {
-        await mockApi.updateFinance(currentFinance.id, submissionData);
+        await api.put(`/finances/${currentFinance.id}`, submissionData);
         showSnackbar('Finance record updated successfully', 'success');
       } else {
-        await mockApi.createFinance(submissionData);
+        await api.post('/finances', submissionData);
         showSnackbar('Finance record added successfully', 'success');
       }
       handleCloseDialog();
@@ -147,11 +196,24 @@ function Finances() {
       showSnackbar('Failed to save finance record', 'error');
     }
   };
+  
+  // const handleDelete = async (id) => {
+  //   if (window.confirm('Are you sure you want to delete this finance record?')) {
+  //     try {
+  //       await mockApi.deleteFinance(id);
+  //       showSnackbar('Finance record deleted successfully', 'success');
+  //       fetchFinances();
+  //     } catch (error) {
+  //       console.error('Error deleting finance record:', error);
+  //       showSnackbar('Failed to delete finance record', 'error');
+  //     }
+  //   }
+  // };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this finance record?')) {
       try {
-        await mockApi.deleteFinance(id);
+        await api.delete(`/finances/${id}`);
         showSnackbar('Finance record deleted successfully', 'success');
         fetchFinances();
       } catch (error) {
@@ -160,6 +222,7 @@ function Finances() {
       }
     }
   };
+  
 
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({
@@ -276,7 +339,7 @@ function Finances() {
                       fontWeight: 'bold'
                     }}
                   >
-                    ${finance.amount.toFixed(2)}
+                    {Number(finance.amount).toFixed(2)}
                   </Typography>
                 </TableCell>
                 <TableCell>{finance.status}</TableCell>

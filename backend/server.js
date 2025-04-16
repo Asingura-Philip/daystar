@@ -14,9 +14,11 @@ app.use(express.urlencoded({ extended: true })); // For parsing application/x-ww
 
 const auth = require('./routes/authroutes')
 const staff = require('./routes/staffroutes')
+const action = require('./routes/actionroutes')
 
 app.use('/',auth)
 app.use('/',staff)
+app.use('/',action)
 
 
 
